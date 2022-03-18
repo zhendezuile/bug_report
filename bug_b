@@ -7,34 +7,34 @@ affected source code file:
 affected source code:
 
   ......
-  	public static function remove($path){
-		    $path = self::replace($path.'/');
-		    if($path!=self::replace(ROOT_PATH) && $path!=self::replace(SYSTEM_PATH) && file_exists($path)){
-			      $files = self::read($path);
-			      foreach($files['file'] as $name){
-				        self::delete($path.$name);
-			      }
-			      foreach($files['dir'] as $name){
-				        self::remove($path.$name);
-		    	  }
-			      if(rmdir($path)){
-				        return true;
-			      }
-		    }
-		    return false;
-	  }
+    public static function remove($path){
+        $path = self::replace($path.'/');
+	if($path!=self::replace(ROOT_PATH) && $path!=self::replace(SYSTEM_PATH) && file_exists($path)){
+	    $files = self::read($path);
+	    foreach($files['file'] as $name){
+	        self::delete($path.$name);
+	    }
+            foreach($files['dir'] as $name){
+                self::remove($path.$name);
+	    }
+	    if(rmdir($path)){
+	        return true;
+	    }
+        }
+        return false;
+    }
   ...... 
     public function delete()
-	  {
-		    global $G;
-		    if(isset($G['post']['url']) && isset($G['get']['name'])){
-			      if($G['get']['name']){
-				        dir::remove(ROOT_PATH.$this->path.$G['get']['name']);
-				        alert('删除成功！',url::mpf('template','template','init',array('name'=>null)));
-			      }
-		    }
-		    alert('删除失败！');
-	  }
+    {
+        global $G;
+	if(isset($G['post']['url']) && isset($G['get']['name'])){
+	    if($G['get']['name']){
+	        dir::remove(ROOT_PATH.$this->path.$G['get']['name']);
+	        alert('删除成功！',url::mpf('template','template','init',array('name'=>null)));
+	    }
+        }
+        alert('删除失败！');
+    }
   ......
   
  ---------------------------------
