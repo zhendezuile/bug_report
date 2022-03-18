@@ -13,31 +13,31 @@ affected source code:
        * @return strong
      */
     function getIP(){
-      if(isset($_SERVER["HTTP_X_FORWARDED_FOR"])){
-        $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
-      }else if(isset($_SERVER["HTTP_CLIENT_IP"])){
-        $ip = $_SERVER["HTTP_CLIENT_IP"];
-      }else{
-        $ip = $_SERVER["REMOTE_ADDR"];
-      }
+        if(isset($_SERVER["HTTP_X_FORWARDED_FOR"])){
+            $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
+        }else if(isset($_SERVER["HTTP_CLIENT_IP"])){
+            $ip = $_SERVER["HTTP_CLIENT_IP"];
+        }else{
+            $ip = $_SERVER["REMOTE_ADDR"];
+        }
         return $ip;
     }
   ......................
   
   ......................
   if($number==7){
-	if(arrExist($G['config'],'search_open')){
-		$G['keyword'] = $keyword = arrExist($G,"get|{$G['config']['search_keyword']}");
-		if(isset($keyword) && $keyword!==''){
-			$G['config']['search_null'] = str_replace('[keyword]',"[<strong>{$keyword}</strong>]",$G['config']['search_null']);
-			$ip = getIP();
-			$time = TIME;
-			if($sear = mysql::select_one('id','search',"parent='{$G['items']['id']}' AND keyword='{$keyword}' AND ip='{$ip}' AND ctime>{$time}-3600")){
-				mysql::update(array('ctime'=>$time),'search',"id='{$sear['id']}'");
-			}else{
-				mysql::insert(array('parent'=>$G['items']['id'],'keyword'=>$keyword,'ip'=>$ip,'ctime'=>$time),'search');
-			}
-		}
+      if(arrExist($G['config'],'search_open')){
+          $G['keyword'] = $keyword = arrExist($G,"get|{$G['config']['search_keyword']}");
+          if(isset($keyword) && $keyword!==''){
+              $G['config']['search_null'] = str_replace('[keyword]',"[<strong>{$keyword}</strong>]",$G['config']['search_null']);
+	      $ip = getIP();
+	      $time = TIME;
+	      if($sear = mysql::select_one('id','search',"parent='{$G['items']['id']}' AND keyword='{$keyword}' AND ip='{$ip}' AND ctime>{$time}-3600")){
+	        mysql::update(array('ctime'=>$time),'search',"id='{$sear['id']}'");
+	      }else{
+                mysql::insert(array('parent'=>$G['items']['id'],'keyword'=>$keyword,'ip'=>$ip,'ctime'=>$time),'search');
+	      }
+          }
    .....................
   
   -------------------------------------------------------------------------------------------------------------------------------
