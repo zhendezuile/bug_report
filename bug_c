@@ -1,6 +1,41 @@
 Vulnerability file: \protected\controller\backend\file_controller.php
 It can be seen that the deleted file or directory is received through the path parameter, and is directly deleted without security filtering, so we can use this vulnerability to delete any file
-![image](https://user-images.githubusercontent.com/90141086/159689762-0e63e61c-7234-4a9e-884c-5f7cd4bf89bb.png)
+
+Vulnerable code:
+.......................................................
+public function action_delete()
+{
+    $path = request('path', '');
+    if(is_array($path) && !empty($path))
+    {
+        $root = 'upload/';
+        $error = array();
+        foreach($path as $v)
+        {
+            $file = str_replace('/', DS, $root.$v);
+                
+            if(is_dir($file))
+            {
+                if(!@rmdir($file)) $error[] = "无法删除非空文件夹({$file})";
+            }
+            elseif(is_file($file))
+            {
+                if(!@unlink($file)) $error[] = "删除文件({$file})失败";
+            }
+            else
+            {
+                $error[] = "文件({$file})不存在";
+            }
+        }
+            
+        if(empty($error)) $this->prompt('success', '删除文件成功');
+        $this->prompt('error', $error);
+    }
+    else
+    {
+        echo $path;
+        $this->prompt('error', '获取文件路径错误');
+..........................................................
 
 Vulnerability to reproduce:
 1. First log in to the background to get cookies。
@@ -24,13 +59,27 @@ Vulnerability to reproduce:
   path[]=../install/installed.lock
 
 3、Click Send Packet,you can see that the file was deleted successfully
-![image](https://user-images.githubusercontent.com/90141086/159695536-d0b07eb4-9c48-4bc7-a158-0677406160fc.png)
 
 4、It can be seen that when the installed.lock file exists, when visiting http://x.x.x/install, the page will directly jump to the front home page
-![image](https://user-images.githubusercontent.com/90141086/159697683-b812ea24-5a46-4d95-83a0-b239211fb8a9.png)
+......................................................
+<?php
+date_default_timezone_set('PRC');
+defined('DS') or define('DS', DIRECTORY_SEPARATOR);
+define('APP_DIR', realpath('../'));
+define('INSTALL_DIR', APP_DIR.DS.'install');
+error_reporting(-1);
+set_time_limit(0);
+require(INSTALL_DIR.DS.'resources'.DS.'version.php');
+require(INSTALL_DIR.DS.'resources'.DS.'function.php');
+header("Content-type:text/html;charset=utf-8");
+$step = request('step');
+if(file_exists(INSTALL_DIR.DS.'installed.lock'))
+{
+    header('Location: ../index.php');
+    exit;
+......................................................
 
 Therefore, when we delete the installed.lock file and visit http://x.x.x/install again, we will come to the installation wizard page
-![image](https://user-images.githubusercontent.com/90141086/159696798-eee9f50f-7051-4356-82c1-ef2ddb1621a1.png)
 
 Repair suggestion:
 1. Filter ../ or ..\\ in the file variable
