@@ -58,13 +58,18 @@ Content-Length: 42
 file%5B%5D=../../../install/installed.lock
 
 3、Click to send the data package, you can see that the file was deleted successfully
-![image](https://user-images.githubusercontent.com/90141086/159714294-7881f591-14d7-4a4a-9ec1-2e7522e9003b.png)
 
 4、It can be seen that when the installed.lock file exists, when visiting http://xxx/install, the page will directly jump to the front home page
-![image](https://user-images.githubusercontent.com/90141086/159714437-d584c580-4580-4ae3-89f7-821da525bc53.png)
+.........................................................
+if(file_exists(INSTALL_DIR.DS.'installed.lock'))
+{
+    header('Location: ../index.php');
+    exit;
+}
+.........................................................
 
 So as long as we delete the installed.lock file, we can reinstall the system，When we delete the installed.lock file and visit http://x.x.x/install, we will enter the installation wizard page
-![image](https://user-images.githubusercontent.com/90141086/159715033-a1925083-2b2e-4e85-9374-7990f0612a83.png)
+
 
 Repair suggestion:
 
